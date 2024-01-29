@@ -4,7 +4,7 @@ bl_info = {
     "category": "Object",
     "location": "View3D > Tool Shelf > LOD Tools",
     "description": "Automatically create LOD (Level of Detail) versions of the selected object",
-    "author": "Your Name",
+    "author": "SXDIST, MIKK",
     "version": (1, 0),
     "wiki_url": "Your Wiki URL",
     "tracker_url": "Your Tracker URL",
@@ -39,13 +39,23 @@ class LODPanelProperties(bpy.types.PropertyGroup):
         default=(0.8, 0.6, 0.4, 0.2),
     )
 
+    lod_selection: bpy.props.EnumProperty(
+        name="LOD Selection",
+        items=[
+            ('LOD0', "LOD0", "Select LOD0"),
+            ('LOD1', "LOD1", "Select LOD1"),
+        ],
+        default='LOD0',
+    )
+
     def create_lods(self, context, ratios, mode):
         if not context.selected_objects:
             self.report({'INFO'}, 'No object selected. Please select an object.')
             return {'CANCELLED'}
 
+        selected_lod = int(self.lod_selection[-1])
         original_obj = context.active_object
-        original_obj.name = 'LOD0'
+        original_obj.name = f'LOD{selected_lod}'
 
         for i, ratio in enumerate(ratios):
             bpy.ops.object.duplicate(linked=False, mode='TRANSLATION')
@@ -62,7 +72,7 @@ class LODPanelProperties(bpy.types.PropertyGroup):
             weighted_normal_modifier.use_face_influence = True
 
             if self.use_change_names:
-                new_obj.name = f'LOD{i + 1}'
+                new_obj.name = f'LOD{selected_lod + i + 1}'
 
         return {'FINISHED'}
 
@@ -83,25 +93,27 @@ class OBJECT_PT_DayZLODToolsPanel(bpy.types.Panel):
         row = box.row(align=True)
         row.label(text="Decimate Values:")
 
-        # Check the preset and enable/disable the properties accordingly
         is_custom_preset = context.scene.lod_panel.preset == 'CUSTOM'
+        x = 0 if context.scene.lod_panel.lod_selection == 'LOD0' else 1
 
         if context.scene.lod_panel.preset == 'FOR_QUADS':
             for i in range(4):
                 row = box.row(align=True)
                 row.enabled = is_custom_preset
-                row.prop(context.scene.lod_panel, f"decimate_values_for_quads", index=i, text=f"LOD{i + 1}", emboss=is_custom_preset)
+                row.prop(context.scene.lod_panel, f"decimate_values_for_quads", index=i, text=f"LOD{i + x + 1}", emboss=is_custom_preset)
         elif context.scene.lod_panel.preset == 'FOR_TRIS':
             for i in range(4):
                 row = box.row(align=True)
                 row.enabled = is_custom_preset
-                row.prop(context.scene.lod_panel, f"decimate_values_for_tris", index=i, text=f"LOD{i + 1}", emboss=is_custom_preset)
+                row.prop(context.scene.lod_panel, f"decimate_values_for_tris", index=i, text=f"LOD{i + x + 1}", emboss=is_custom_preset)
         else:
             for i in range(4):
                 row = box.row(align=True)
                 row.enabled = is_custom_preset
-                row.prop(context.scene.lod_panel, f"decimate_values_for_quads", index=i, text=f"LOD{i + 1}", emboss=is_custom_preset)
-
+                row.prop(context.scene.lod_panel, f"decimate_values_for_quads", index=i, text=f"LOD{i + x + 1}", emboss=is_custom_preset)
+        
+        row = box.row(align=True)
+        row.prop(context.scene.lod_panel, "lod_selection", text="LOD Selection", expand=True)
         row = box.row(align=True)
         row.scale_y = 2.0
         row.operator("object.create_lods")
@@ -112,6 +124,9 @@ class OBJECT_OT_CreateLODs(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
+        if not context.selected_objects:
+            self.report({'INFO'}, 'No object selected. Please select an object.')
+            return {'CANCELLED'}
         lod_panel = context.scene.lod_panel
         if context.scene.lod_panel.preset == 'FOR_QUADS':
             ratios = lod_panel.decimate_values_for_quads
