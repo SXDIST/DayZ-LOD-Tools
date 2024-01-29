@@ -47,7 +47,7 @@ class OBJECT_OT_create_lods_quadrangulate(bpy.types.Operator):
         original_obj.name = 'LOD0'
 
         # Дублируем объект 4 раза
-        for i, ratio in enumerate([0.8, 0.6, 0.4, 0.2]):
+        for i, ratio in enumerate([0.5, 0.3, 0.2, 0.1]):
             new_obj = original_obj.copy()
             context.collection.objects.link(new_obj)
 
@@ -84,7 +84,7 @@ class OBJECT_OT_create_lods_triangulate(bpy.types.Operator):
         original_obj.name = 'LOD0'
 
         # Дублируем объект 4 раза
-        for i, ratio in enumerate([0.5, 0.3, 0.2, 0.1]):
+        for i, ratio in enumerate([0.8, 0.6, 0.4, 0.2]):
             new_obj = original_obj.copy()
             context.collection.objects.link(new_obj)
 
