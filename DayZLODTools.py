@@ -11,7 +11,6 @@ bl_info = {
     "support": "COMMUNITY",
 }
 
-
 import bpy
 
 class LODPanelProperties(bpy.types.PropertyGroup):
@@ -25,12 +24,19 @@ class LODPanelProperties(bpy.types.PropertyGroup):
         ],
         default='FOR_QUADS',
     )
-    decimate_values: bpy.props.FloatVectorProperty(
-        name="Decimate Values",
+    decimate_values_for_quads: bpy.props.FloatVectorProperty(
+        name="Decimate Values (For Quads)",
         size=4,
         min=0.0,
         max=1.0,
-        default=(0.9, 0.7, 0.5, 0.3),
+        default=(0.5, 0.3, 0.2, 0.1),
+    )
+    decimate_values_for_tris: bpy.props.FloatVectorProperty(
+        name="Decimate Values (For Tris)",
+        size=4,
+        min=0.0,
+        max=1.0,
+        default=(0.8, 0.6, 0.4, 0.2),
     )
 
     def create_lods(self, context, ratios, mode):
@@ -80,15 +86,26 @@ class OBJECT_PT_DayZLODToolsPanel(bpy.types.Panel):
         # Check the preset and enable/disable the properties accordingly
         is_custom_preset = context.scene.lod_panel.preset == 'CUSTOM'
 
-        for i in range(4):
-            row = box.row(align=True)
-            row.enabled = is_custom_preset
-            row.prop(context.scene.lod_panel, f"decimate_values", index=i, text=f"LOD{i + 1}", emboss=is_custom_preset)
+        if context.scene.lod_panel.preset == 'FOR_QUADS':
+            for i in range(4):
+                row = box.row(align=True)
+                row.enabled = is_custom_preset
+                row.prop(context.scene.lod_panel, f"decimate_values_for_quads", index=i, text=f"LOD{i + 1}", emboss=is_custom_preset)
+        elif context.scene.lod_panel.preset == 'FOR_TRIS':
+            for i in range(4):
+                row = box.row(align=True)
+                row.enabled = is_custom_preset
+                row.prop(context.scene.lod_panel, f"decimate_values_for_tris", index=i, text=f"LOD{i + 1}", emboss=is_custom_preset)
+        else:
+            for i in range(4):
+                row = box.row(align=True)
+                row.enabled = is_custom_preset
+                row.prop(context.scene.lod_panel, f"decimate_values_for_quads", index=i, text=f"LOD{i + 1}", emboss=is_custom_preset)
 
         row = box.row(align=True)
         row.scale_y = 2.0
         row.operator("object.create_lods")
-        
+
 class OBJECT_OT_CreateLODs(bpy.types.Operator):
     bl_idname = "object.create_lods"
     bl_label = "Create LODs"
@@ -96,7 +113,12 @@ class OBJECT_OT_CreateLODs(bpy.types.Operator):
 
     def execute(self, context):
         lod_panel = context.scene.lod_panel
-        ratios = lod_panel.decimate_values
+        if context.scene.lod_panel.preset == 'FOR_QUADS':
+            ratios = lod_panel.decimate_values_for_quads
+        elif context.scene.lod_panel.preset == 'FOR_TRIS':
+            ratios = lod_panel.decimate_values_for_tris
+        else:
+            ratios = lod_panel.decimate_values_for_quads
         return lod_panel.create_lods(context, ratios, 'quadrangulate')
 
 def menu_func(self, context):
