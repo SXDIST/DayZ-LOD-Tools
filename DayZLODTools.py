@@ -43,12 +43,19 @@ class OBJECT_OT_CreateLODsQuadrangulate(bpy.types.Operator):
         original_obj.name = 'LOD0'
 
         for i, ratio in enumerate([0.5, 0.3, 0.2, 0.1]):
-            new_obj = original_obj.copy()
-            context.collection.objects.link(new_obj)
+            # Дублируем объект с Duplicate Objects
+            bpy.ops.object.duplicate(linked=False, mode='TRANSLATION')
+            new_obj = context.active_object
 
+            # Удаляем все модификаторы
+            for modifier in new_obj.modifiers:
+                new_obj.modifiers.remove(modifier)
+
+            # Добавляем модификатор Decimate
             decimate_modifier = new_obj.modifiers.new(name=f'Decimate_{i}', type='DECIMATE')
             decimate_modifier.ratio = ratio
 
+            # Добавляем модификатор Weighted Normal
             weighted_normal_modifier = new_obj.modifiers.new(name=f'Weighted_Normal_{i}', type='WEIGHTED_NORMAL')
             weighted_normal_modifier.keep_sharp = True
             weighted_normal_modifier.use_face_influence = True
@@ -71,12 +78,19 @@ class OBJECT_OT_CreateLODsTriangulate(bpy.types.Operator):
         original_obj.name = 'LOD0'
 
         for i, ratio in enumerate([0.8, 0.6, 0.4, 0.2]):
-            new_obj = original_obj.copy()
-            context.collection.objects.link(new_obj)
+            # Дублируем объект с Duplicate Objects
+            bpy.ops.object.duplicate(linked=False, mode='TRANSLATION')
+            new_obj = context.active_object
 
+            # Удаляем все модификаторы
+            for modifier in new_obj.modifiers:
+                new_obj.modifiers.remove(modifier)
+
+            # Добавляем модификатор Decimate
             decimate_modifier = new_obj.modifiers.new(name=f'Decimate_{i}', type='DECIMATE')
             decimate_modifier.ratio = ratio
 
+            # Добавляем модификатор Weighted Normal
             weighted_normal_modifier = new_obj.modifiers.new(name=f'Weighted_Normal_{i}', type='WEIGHTED_NORMAL')
             weighted_normal_modifier.keep_sharp = True
             weighted_normal_modifier.use_face_influence = True
