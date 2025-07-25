@@ -1,4 +1,4 @@
-# DayZ-LOD-Tools Addon for Blender
+# DayZ LOD Tools Addon for Blender
 
 Welcome to **DayZ-LOD-Tools**, an addon for Blender designed to streamline the creation of Level of Detail (LOD) models for use with Arma 3 Object Builder. This tool automates the generation of Resolution LODs and Geometry LODs, offering a user-friendly interface and customizable options to enhance your workflow.
 
