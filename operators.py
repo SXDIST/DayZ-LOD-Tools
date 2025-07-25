@@ -30,7 +30,7 @@ class A3OBE_OT_GenerateLODs(Operator):
             original_obj = ctx.active_object
             original_obj.name = f'{EPR.lod_prefix}{first_lod}'
             original_obj.data.name = original_obj.name
-            original_obj.data.use_auto_smooth = True
+            # Убрано: original_obj.data.use_auto_smooth = True
 
             original_obj.a3ob_properties_object.is_a3_lod = True
             original_obj.a3ob_properties_object.lod = '0'
@@ -51,11 +51,13 @@ class A3OBE_OT_GenerateLODs(Operator):
                 duplicated_obj = self.duplicate(ctx, original_obj)
                 duplicated_obj.name = f'{EPR.lod_prefix}{first_lod + i + 1}'
                 duplicated_obj.data.name = duplicated_obj.name
+                # Убрано: duplicated_obj.data.use_auto_smooth = True
 
                 decimate_modifier = duplicated_obj.modifiers.new(name='Decimate', type='DECIMATE')
                 decimate_modifier.ratio = decimate_value
                 decimate_modifier.use_collapse_triangulate = True
 
+                # Сохранён модификатор WeightedNormal
                 weighted_normal_modifier = duplicated_obj.modifiers.new(name='WeightedNormal', type='WEIGHTED_NORMAL')
                 weighted_normal_modifier.use_face_influence = True
                 weighted_normal_modifier.keep_sharp = True
@@ -79,6 +81,15 @@ class A3OBE_OT_GenerateLODs(Operator):
         obj_copy = obj.copy()
         obj_copy.data = obj_copy.data.copy()
         ctx.collection.objects.link(obj_copy)
+
+        # Копирование всех дочерних объектов (прокси)
+        for child in obj.children:
+            child_copy = child.copy()
+            if child_copy.data:
+                child_copy.data = child_copy.data.copy()
+            ctx.collection.objects.link(child_copy)
+            child_copy.parent = obj_copy
+
         return obj_copy
 
     def add_named_property(self, obj, name, value):
