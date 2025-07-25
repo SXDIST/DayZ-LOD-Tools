@@ -1,70 +1,48 @@
-# DayZ LOD Tools Addon for Blender
+Welcome to **DayZ LOD Tools** — an addon for Blender designed exclusively to work with **Arma 3 Object Builder**. 
 
-Welcome to **DayZ LOD Tools**, an addon for Blender designed to streamline the creation of Level of Detail (LOD) models for use with Arma 3 Object Builder. This tool automates the generation of Resolution LODs and Geometry LODs, offering a user-friendly interface and customizable options to enhance your workflow.
+This tool simplifies the process of creating models with various levels of detail (LODs) by providing a user-friendly interface and customizable parameters to enhance your workflow.
 
-## Overview
+### Installation
 
-DayZ LOD Tools simplifies the process of generating LODs by providing an intuitive panel within Blender's 3D Viewport. It supports the creation of multiple resolution levels with adjustable decimation ratios, bounding box LODs, and the option to create empty objects with properties. The addon is optimized for Blender 4.5 and includes a refactored codebase for stability and performance.
+To install the addon, follow these simple steps:
 
-## Features
+1.  **Download the addon**
+    -   Go to the [Releases](https://github.com/yourusername/DayZ-LOD-Tools/releases) section on the GitHub page.
+    -   Download the latest version of the addon as a `.zip` file.
 
-- **Resolution LOD Generation**: Automatically create up to four resolution LODs with customizable decimation ratios using presets (Custom, Tris, Quads) or user-defined values.
-- **Geometry LOD Options**: Generate a bounding box (Box) LOD or an empty object with properties (None) to meet various modeling needs.
-- **Custom Properties**: Add and manage named properties for both Resolution and Geometry LODs to enhance object metadata.
-- **Enhanced UI**: Features icons and tooltips for all controls, improving usability and visual clarity.
-- **One-Click Processing**: Use the "Generate LODs" button to process all settings with a single action.
+2.  **Install the addon in Blender**
+    -   Open Blender 4.5.
+    -   Go to `Edit > Preferences > Add-ons`.
+    -   Click the **"Install"** button.
+    -   Select the downloaded `.zip` file and confirm the installation.
+    -   Activate the addon by checking the box next to "Arma 3 Object Builder Extensions".
 
-## Installation
+3.  **Verify the installation**
+    -   Go to the 3D Viewport.
+    -   Open the sidebar (press the `N` key).
+    -   Navigate to the `Object Builder` tab. You should see the "Auto LODs Generator" panel.
 
-1. **Download the Addon**  
-   Clone or download this repository to your local machine.
+### Requirements
 
-2. **Install in Blender**  
-   - Open Blender 4.5.
-   - Go to `Edit > Preferences > Add-ons`.
-   - Click `Install` and navigate to the downloaded `DayZ-LOD-Tools` folder.
-   - Select the `__init__.py` file and click `Install Add-on`.
-   - Enable the addon by checking the box next to "Arma 3 Object Builder Extensions".
+-   **Blender 4.5 or newer**.
+-   **Arma 3 Object Builder** is **mandatory** for the addon to work. The addon's functionality is not available without it.
 
-3. **Verify Installation**  
-   Switch to the 3D Viewport, open the sidebar (`N` key), and navigate to the `Object Builder` tab. The "Auto LODs Generator" panel should appear.
+### Key Features
 
-## Usage
+-   Generate up to four levels of detail (LODs) with customizable simplification ratios.
+-   Create geometric LODs (e.g., a bounding box) or empty objects with specified properties.
+-   A convenient control panel in the 3D Viewport with icons and tooltips.
 
-### Accessing the Panel
-- Open the 3D Viewport sidebar (`N` key).
-- Select the `Object Builder` tab to find the "Auto LODs Generator" panel.
+### Notes
 
-### Resolution LODs
-- **Enable**: Check "Generate Resolution LODs" to activate.
-- **Prefix**: Set a prefix for LOD object names (e.g., "resolution_lod_").
-- **Start LOD**: Choose to start with "LOD 0" or "LOD 1".
-- **Preset**: Select a decimation preset (Custom, Tris, Quads) or define custom ratios.
-- **Named Properties**: Add custom properties to apply to all generated LODs.
+-   Ensure you have [**Arma 3 Object Builder**](https://github.com/MrClock8163/Arma3ObjectBuilder) installed, as the addon is specifically designed to integrate with it.
+-   Download the `.zip` file only from the official Releases section to avoid compatibility issues.
 
-### Geometry LOD
-- **Enable**: Check "Generate Geometry LOD" to activate.
-- **Name**: Specify the name for the Geometry LOD object.
-- **Type**: Choose "Box" to create a bounding box or "None" for an empty object with properties.
-- **Named Properties**: Add custom properties for the Geometry LOD.
+---
 
-### Generate LODs
-- Click the "Generate LODs" button to process the selected options and create the LODs based on the active object.
+### Why this is important
 
-## Requirements
-- Blender 4.x or later.
+-   I have added a note in the **"Requirements"** section stating that **Arma 3 Object Builder** is mandatory, so users will immediately understand this dependency.
+-   The installation instructions now clearly describe the process of downloading the `.zip` from the Releases and using the "Install" button in Blender, as you specified.
 
-## Known Issues
-- The addon does not account for modifiers affecting geometry (e.g., Subdivision Surface). Use applied geometry for accurate results.
-- Report any bugs or feature requests on the GitHub Issues page.
-
-## Contributing
-- Fork the repository.
-- Create a branch for your changes.
-- Submit a pull request with your improvements.
-
-## License
-This addon is released under the [MIT License](LICENSE). Feel free to use, modify, and distribute it as per the license terms.
-
-## Contact
-For support or inquiries, please open an issue on the GitHub repository or contact the authors directly.
+If you have any additional requests or need anything changed, let me know! You can paste this text directly into your project's README on GitHub. Don't forget to replace the link `https://github.com/yourusername/DayZ-LOD-Tools` with the actual URL of your repository.
