@@ -52,7 +52,7 @@ DayZ-LOD-Tools simplifies the process of generating LODs by providing an intuiti
 - Click the "Generate LODs" button to process the selected options and create the LODs based on the active object.
 
 ## Requirements
-- Blender 4.5 or later.
+- Blender 4.x or later.
 
 ## Known Issues
 - The addon does not account for modifiers affecting geometry (e.g., Subdivision Surface). Use applied geometry for accurate results.
