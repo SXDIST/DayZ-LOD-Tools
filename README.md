@@ -4,7 +4,7 @@ Welcome to **DayZ LOD Tools**, an addon for Blender designed to streamline the c
 
 ## Overview
 
-DayZ-LOD-Tools simplifies the process of generating LODs by providing an intuitive panel within Blender's 3D Viewport. It supports the creation of multiple resolution levels with adjustable decimation ratios, bounding box LODs, and the option to create empty objects with properties. The addon is optimized for Blender 4.5 and includes a refactored codebase for stability and performance.
+DayZ LOD Tools simplifies the process of generating LODs by providing an intuitive panel within Blender's 3D Viewport. It supports the creation of multiple resolution levels with adjustable decimation ratios, bounding box LODs, and the option to create empty objects with properties. The addon is optimized for Blender 4.5 and includes a refactored codebase for stability and performance.
 
 ## Features
 
