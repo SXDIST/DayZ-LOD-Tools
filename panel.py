@@ -8,95 +8,65 @@ class A3OBE_PT_AutoLOD(Panel):
     bl_label = 'Auto LODs Generator'
     bl_options = {'DEFAULT_CLOSED'}
 
-    def draw_header(self, _):
+    def draw_header(self, context):
         self.layout.label(icon='FORCE_VORTEX')
 
-    def draw(self, ctx):
-        L = self.layout
-        S = ctx.scene
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
 
-        EPR = S.a3obe_resolution_lods
-        EPG = S.a3obe_geometry_lod
-        EPM = S.a3obe_memory_lod
+        resolution_lods = scene.a3obe_resolution_lods
+        geometry_lod = scene.a3obe_geometry_lod
 
-        row = L.row(align=True)
-        row.prop(EPR, 'active', icon='MOD_DECIM')
+        row = layout.row(align=True)
+        row.prop(resolution_lods, 'active', icon='MOD_DECIM', text="Resolution LODs")
 
-        if EPR.active:
-            box = L.box()
+        if resolution_lods.active:
+            box = layout.box()
             box.label(text="Resolution LODs", icon='MESH_CUBE')
-
             row = box.row(align=True)
-            row.prop(EPR, 'lod_prefix', icon='FONT_DATA')
-
+            row.prop(resolution_lods, 'lod_prefix', icon='FONT_DATA')
             row = box.row(align=True)
-            row.prop(EPR, 'first_lod', expand=True, icon='OUTLINER_OB_MESH')
-
+            row.prop(resolution_lods, 'first_lod', expand=True, icon='OUTLINER_OB_MESH')
             row = box.row(align=True)
-            row.prop(EPR, 'preset', expand=True, icon='MODIFIER')
-
-            match EPR.first_lod:
-                case 'LOD0':
-                    first_lod = 1
-                case 'LOD1':
-                    first_lod = 2
-
-            match EPR.preset:
-                case 'CUSTOM':
-                    decimate_values = 'custom_decimate_values'
-                case 'TRIS':
-                    decimate_values = 'tris_decimate_values'
-                case 'QUADS':
-                    decimate_values = 'quads_decimate_values'
-
+            row.prop(resolution_lods, 'preset', expand=True, icon='MODIFIER')
+            first_lod = 1 if resolution_lods.first_lod == 'LOD1' else 0
+            preset = resolution_lods.preset
+            decimate_values = 'custom_decimate_values' if preset == 'CUSTOM' else 'tris_decimate_values' if preset == 'TRIS' else 'quads_decimate_values'
             for i in range(first_lod, first_lod + 4):
                 row = box.row(align=True)
-                row.enabled = EPR.preset == 'CUSTOM'
-                row.prop(EPR, decimate_values, index=i-first_lod, text=f'LOD{i}', icon='MESH_DATA')
-
-            box = L.box()
+                row.enabled = preset == 'CUSTOM'
+                row.prop(resolution_lods, decimate_values, index=i-first_lod, text=f'LOD{i}', icon='MESH_DATA')
+            box = layout.box()
             box.label(text="Named Properties", icon='PROPERTIES')
-            props = EPR.named_properties
-            for i, prop in enumerate(props):
+            for i, prop in enumerate(resolution_lods.named_properties):
                 row = box.row(align=True)
                 row.prop(prop, "name", text="", icon='FILE_TEXT')
                 row.prop(prop, "value", text="", icon='TEXT')
-                row.operator("a3obe.remove_named_property", text="", icon='X').index = i
+                row.operator("a3obe.remove_named_property_resolution", text="", icon='X').index = i
             row = box.row()
-            row.operator("a3obe.add_named_property", text="Add Property", icon='PLUS')
-            row = box.row()
-            row.operator("a3obe.initialize_default_property", text="Initialize Default Property", icon='FILE_REFRESH')
+            row.operator("a3obe.add_named_property_resolution", text="Add Property", icon='PLUS')
 
-        row = L.row(align=True)
-        row.prop(EPG, 'active', icon='MODIFIER')
+        row = layout.row(align=True)
+        row.prop(geometry_lod, 'active', icon='MODIFIER', text="Geometry LOD")
 
-        if EPG.active:
-            box = L.box()
+        if geometry_lod.active:
+            box = layout.box()
             box.label(text="Geometry LOD", icon='MESH_CUBE')
             row = box.row(align=True)
-            row.prop(EPG, 'lod_name', icon='FONT_DATA')
+            row.prop(geometry_lod, 'lod_name', icon='FONT_DATA')
             row = box.row(align=True)
-            row.prop(EPG, 'convex_hull_mesh', icon='MESH_GRID')
-            row = box.row(align=True)
-            row.prop(EPG, 'autocenter_property', icon='OBJECT_ORIGIN')
+            row.prop(geometry_lod, 'geometry_type', expand=True, icon='MESH_CUBE')
+            box = layout.box()
+            box.label(text="Named Properties", icon='PROPERTIES')
+            for i, prop in enumerate(geometry_lod.named_properties):
+                row = box.row(align=True)
+                row.prop(prop, "name", text="", icon='FILE_TEXT')
+                row.prop(prop, "value", text="", icon='TEXT')
+                row.operator("a3obe.remove_named_property_geometry", text="", icon='X').index = i
+            row = box.row()
+            row.operator("a3obe.add_named_property_geometry", text="Add Property", icon='PLUS')
 
-        row = L.row(align=True)
-        row.prop(EPM, 'active', icon='MODIFIER')
-
-        if EPM.active:
-            box = L.box()
-            box.label(text="Memory LOD", icon='MESH_CUBE')
-            row = box.row(align=True)
-            row.prop(EPM, 'lod_name', icon='FONT_DATA')
-            row = box.row(align=True)
-            row.prop(EPM, 'create_boundingbox_min_point', icon='EMPTY_ARROWS')
-            row = box.row(align=True)
-            row.prop(EPM, 'create_boundingbox_max_point', icon='EMPTY_ARROWS')
-            row = box.row(align=True)
-            row.prop(EPM, 'create_invview_point', icon='VIEW_PAN')
-            row = box.row(align=True)
-            row.prop(EPM, 'autocenter_property', icon='OBJECT_ORIGIN')
-
-        row = L.row(align=True)
+        row = layout.row(align=True)
         row.scale_y = 2.0
-        row.operator('a3obe.generate_lods', icon='PLAY')
+        row.operator('a3obe.generate_lods', icon='PLAY', text="Generate LODs")
