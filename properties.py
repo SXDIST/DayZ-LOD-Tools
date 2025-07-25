@@ -25,9 +25,10 @@ class A3OBE_PG_ResolutionLODs(PropertyGroup):
     named_properties: CollectionProperty(type=A3OBE_PG_NamedProperty, description="List of custom properties for resolution LODs")
 
 class A3OBE_PG_GeometryLOD(PropertyGroup):
-    active: BoolProperty(name="Generate Geometry LOD", description="Enable generation of geometry LOD", default=False)
+    active: BoolProperty(name="Generate Geometry LOD", description="Enable generation of geometry LOD", default=True)
     lod_name: StringProperty(name="Name", description="Name of the geometry LOD object", default="geometry_lod")
-    geometry_type: EnumProperty(items=[('BOX', "Box", "Generate a bounding box", 'MESH_CUBE', 0),
-                                      ('NONE', "None", "Create empty object with properties", 'BLANK1', 1)],
+    geometry_type: EnumProperty(items=[('BOX', "Box", "Generate a single bounding box", 'MESH_CUBE', 0),
+                                      ('MULTIPLE_BOXES', "Multiple Boxes", "Generate bounding boxes for each loose part", 'MESH_CUBE', 1),
+                                      ('NONE', "None", "Create empty object with properties", 'EMPTY_DATA', 2)],
                                 default='BOX', description="Choose the type of geometry LOD to generate")
     named_properties: CollectionProperty(type=A3OBE_PG_NamedProperty, description="List of custom properties for geometry LOD")
