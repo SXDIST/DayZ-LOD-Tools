@@ -16,7 +16,6 @@ class A3OBE_OT_GenerateLODs(Operator):
             return {'CANCELLED'}
 
         if EPR.active:
-            # Ensure lodnoshadow = 1 is present by default
             if not any(prop.name == 'lodnoshadow' for prop in EPR.named_properties):
                 item = EPR.named_properties.add()
                 item.name = 'lodnoshadow'
@@ -37,7 +36,6 @@ class A3OBE_OT_GenerateLODs(Operator):
             original_obj.a3ob_properties_object.lod = '0'
             original_obj.a3ob_properties_object.resolution = first_lod
 
-            # Apply named properties to original object
             for prop in EPR.named_properties:
                 self.add_named_property(original_obj, prop.name, prop.value)
 
@@ -66,7 +64,6 @@ class A3OBE_OT_GenerateLODs(Operator):
                 duplicated_obj.a3ob_properties_object.lod = '0'
                 duplicated_obj.a3ob_properties_object.resolution = first_lod + i + 1
 
-                # Apply named properties to duplicated object
                 for prop in EPR.named_properties:
                     self.add_named_property(duplicated_obj, prop.name, prop.value)
 
@@ -128,14 +125,3 @@ class A3OBE_OT_InitializeDefaultProperty(Operator):
         else:
             self.report({'WARNING'}, 'lodnoshadow is already present in Named Properties')
         return {'FINISHED'}
-
-# Удаляем дублирующиеся функции register и unregister
-# def register():
-#     bpy.utils.register_class(A3OBE_OT_GenerateLODs)
-#     bpy.utils.register_class(A3OBE_OT_AddNamedProperty)
-#     bpy.utils.register_class(A3OBE_OT_RemoveNamedProperty)
-#
-# def unregister():
-#     bpy.utils.unregister_class(A3OBE_OT_GenerateLODs)
-#     bpy.utils.unregister_class(A3OBE_OT_AddNamedProperty)
-#     bpy.utils.unregister_class(A3OBE_OT_RemoveNamedProperty)

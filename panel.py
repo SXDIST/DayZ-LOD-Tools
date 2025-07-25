@@ -100,10 +100,3 @@ class A3OBE_PT_AutoLOD(Panel):
         row = L.row(align=True)
         row.scale_y = 2.0
         row.operator('a3obe.generate_lods', icon='PLAY')
-
-# Удаляем дублирующиеся функции register и unregister
-# def register():
-#     bpy.utils.register_class(A3OBE_PT_AutoLOD)
-#
-# def unregister():
-#     bpy.utils.unregister_class(A3OBE_PT_AutoLOD)
