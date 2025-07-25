@@ -1,138 +1,166 @@
 import bpy
+import bmesh
 from bpy.types import Operator
+from mathutils import Vector
 
 class A3OBE_OT_GenerateLODs(Operator):
     bl_idname = 'a3obe.generate_lods'
     bl_label = 'Generate LODs'
+    bl_icon = 'PLAY'
 
-    def execute(self, ctx):
-        S = ctx.scene
-        EPR = S.a3obe_resolution_lods
-        EPG = S.a3obe_geometry_lod
-        EPM = S.a3obe_memory_lod
+    def execute(self, context):
+        scene = context.scene
+        resolution_lods = scene.a3obe_resolution_lods
+        geometry_lod = scene.a3obe_geometry_lod
 
-        if not ctx.active_object:
+        if not context.active_object:
             self.report({'WARNING'}, 'Select an object first!')
             return {'CANCELLED'}
 
-        if EPR.active:
-            if not any(prop.name == 'lodnoshadow' for prop in EPR.named_properties):
-                item = EPR.named_properties.add()
-                item.name = 'lodnoshadow'
-                item.value = '1'
+        if resolution_lods.active:
+            first_lod = 0 if resolution_lods.first_lod == 'LOD0' else 1
+            obj = context.active_object
+            obj.name = f'{resolution_lods.lod_prefix}{first_lod}'
+            obj.data.name = obj.name
+            obj.a3ob_properties_object.is_a3_lod = True
+            obj.a3ob_properties_object.lod = "0"
+            obj.a3ob_properties_object.resolution = first_lod
+            for prop in resolution_lods.named_properties:
+                self.add_named_property(obj, prop.name, prop.value)
 
-            match EPR.first_lod:
-                case 'LOD0':
-                    first_lod = 0
-                case 'LOD1':
-                    first_lod = 1
+            decimate_values = (resolution_lods.custom_decimate_values if resolution_lods.preset == 'CUSTOM'
+                             else resolution_lods.tris_decimate_values if resolution_lods.preset == 'TRIS'
+                             else resolution_lods.quads_decimate_values)
+            for i, ratio in enumerate(decimate_values):
+                dup_obj = self.duplicate(context, obj)
+                dup_obj.name = f'{resolution_lods.lod_prefix}{first_lod + i + 1}'
+                dup_obj.data.name = dup_obj.name
+                decimate = dup_obj.modifiers.new(name='Decimate', type='DECIMATE')
+                decimate.ratio = ratio
+                decimate.use_collapse_triangulate = True
+                weighted_normal = dup_obj.modifiers.new(name='WeightedNormal', type='WEIGHTED_NORMAL')
+                weighted_normal.use_face_influence = True
+                weighted_normal.keep_sharp = True
+                dup_obj.a3ob_properties_object.is_a3_lod = True
+                dup_obj.a3ob_properties_object.resolution = first_lod + i + 1
+                dup_obj.a3ob_properties_object.lod = str(first_lod + i + 1)
+                for prop in resolution_lods.named_properties:
+                    self.add_named_property(dup_obj, prop.name, prop.value)
 
-            original_obj = ctx.active_object
-            original_obj.name = f'{EPR.lod_prefix}{first_lod}'
-            original_obj.data.name = original_obj.name
-            # Убрано: original_obj.data.use_auto_smooth = True
-
-            original_obj.a3ob_properties_object.is_a3_lod = True
-            original_obj.a3ob_properties_object.lod = '0'
-            original_obj.a3ob_properties_object.resolution = first_lod
-
-            for prop in EPR.named_properties:
-                self.add_named_property(original_obj, prop.name, prop.value)
-
-            match EPR.preset:
-                case 'CUSTOM':
-                    decimate_values = EPR.custom_decimate_values
-                case 'TRIS':
-                    decimate_values = EPR.tris_decimate_values
-                case 'QUADS':
-                    decimate_values = EPR.quads_decimate_values
-
-            for i, decimate_value in enumerate(decimate_values):
-                duplicated_obj = self.duplicate(ctx, original_obj)
-                duplicated_obj.name = f'{EPR.lod_prefix}{first_lod + i + 1}'
-                duplicated_obj.data.name = duplicated_obj.name
-                # Убрано: duplicated_obj.data.use_auto_smooth = True
-
-                decimate_modifier = duplicated_obj.modifiers.new(name='Decimate', type='DECIMATE')
-                decimate_modifier.ratio = decimate_value
-                decimate_modifier.use_collapse_triangulate = True
-
-                # Сохранён модификатор WeightedNormal
-                weighted_normal_modifier = duplicated_obj.modifiers.new(name='WeightedNormal', type='WEIGHTED_NORMAL')
-                weighted_normal_modifier.use_face_influence = True
-                weighted_normal_modifier.keep_sharp = True
-
-                duplicated_obj.a3ob_properties_object.is_a3_lod = True
-                duplicated_obj.a3ob_properties_object.lod = '0'
-                duplicated_obj.a3ob_properties_object.resolution = first_lod + i + 1
-
-                for prop in EPR.named_properties:
-                    self.add_named_property(duplicated_obj, prop.name, prop.value)
-
-        if EPG.active:
-            pass
-
-        if EPM.active:
-            pass
+        if geometry_lod.active:
+            obj = context.active_object
+            geometry_lod_obj = bpy.data.objects.new(geometry_lod.lod_name, bpy.data.meshes.new(geometry_lod.lod_name))
+            context.collection.objects.link(geometry_lod_obj)
+            if geometry_lod.geometry_type == 'BOX':
+                self.create_bounding_box(context, obj, geometry_lod_obj)
+            elif geometry_lod.geometry_type == 'NONE':
+                geometry_lod_obj.a3ob_properties_object.is_a3_lod = True
+                geometry_lod_obj.a3ob_properties_object.lod = '6'
+            geometry_lod_obj.a3ob_properties_object.is_a3_lod = True
+            geometry_lod_obj.a3ob_properties_object.lod = '6'
+            for prop in geometry_lod.named_properties:
+                self.add_named_property(geometry_lod_obj, prop.name, prop.value)
 
         return {'FINISHED'}
 
-    def duplicate(self, ctx, obj):
-        obj_copy = obj.copy()
-        obj_copy.data = obj_copy.data.copy()
-        ctx.collection.objects.link(obj_copy)
-
-        # Копирование всех дочерних объектов (прокси)
+    def duplicate(self, context, obj):
+        copy = obj.copy()
+        copy.data = obj.data.copy()
+        context.collection.objects.link(copy)
         for child in obj.children:
             child_copy = child.copy()
             if child_copy.data:
                 child_copy.data = child_copy.data.copy()
-            ctx.collection.objects.link(child_copy)
-            child_copy.parent = obj_copy
+            context.collection.objects.link(child_copy)
+            child_copy.parent = copy
+        return copy
 
-        return obj_copy
+    def create_bounding_box(self, context, source_obj, target_obj):
+        bm = bmesh.new()
+        bm.from_mesh(source_obj.data)
+        coords = [source_obj.matrix_world @ v.co for v in bm.verts]
+        bm.free()
+        min_corner = Vector((min(v.x for v in coords), min(v.y for v in coords), min(v.z for v in coords)))
+        max_corner = Vector((max(v.x for v in coords), max(v.y for v in coords), max(v.z for v in coords)))
+        size = max_corner - min_corner
+        center = (max_corner + min_corner) / 2
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=center)
+        cube_obj = context.active_object
+        cube_obj.scale = size
+        target_obj.data = cube_obj.data.copy()
+        target_obj.location = cube_obj.location
+        target_obj.scale = size
+        bpy.data.objects.remove(cube_obj, do_unlink=True)
+        target_obj.data.update()
+
+    def create_convex_hull(self, context, source_obj, target_obj):
+        bm = bmesh.new()
+        bm.from_mesh(source_obj.data)
+        bmesh.ops.convex_hull(bm, input=bm.verts, use_existing_faces=False)
+        bm.to_mesh(target_obj.data)
+        bm.free()
+        target_obj.data.update()
 
     def add_named_property(self, obj, name, value):
-        properties = obj.a3ob_properties_object.properties
-        if not any(x.name == name for x in properties):
-            item = properties.add()
+        props = obj.a3ob_properties_object.properties
+        if not any(p.name == name for p in props):
+            item = props.add()
             item.name = name
             item.value = value
 
-class A3OBE_OT_AddNamedProperty(Operator):
-    bl_idname = 'a3obe.add_named_property'
-    bl_label = 'Add Named Property'
-
-    def execute(self, ctx):
-        EPR = ctx.scene.a3obe_resolution_lods
-        item = EPR.named_properties.add()
-        item.name = ''
-        item.value = ''
+class A3OBE_OT_AddNamedProperty_Resolution(Operator):
+    bl_idname = 'a3obe.add_named_property_resolution'
+    bl_label = 'Add Property'
+    bl_icon = 'PLUS'
+    def execute(self, context):
+        context.scene.a3obe_resolution_lods.named_properties.add()
         return {'FINISHED'}
 
-class A3OBE_OT_RemoveNamedProperty(Operator):
-    bl_idname = 'a3obe.remove_named_property'
-    bl_label = 'Remove Named Property'
+class A3OBE_OT_AddNamedProperty_Geometry(Operator):
+    bl_idname = 'a3obe.add_named_property_geometry'
+    bl_label = 'Add Property'
+    bl_icon = 'PLUS'
+    def execute(self, context):
+        context.scene.a3obe_geometry_lod.named_properties.add()
+        return {'FINISHED'}
 
+class A3OBE_OT_RemoveNamedProperty_Resolution(Operator):
+    bl_idname = 'a3obe.remove_named_property_resolution'
+    bl_label = 'Remove Property'
+    bl_icon = 'X'
     index: bpy.props.IntProperty()
+    def execute(self, context):
+        props = context.scene.a3obe_resolution_lods.named_properties
+        if 0 <= self.index < len(props):
+            props.remove(self.index)
+        return {'FINISHED'}
 
-    def execute(self, ctx):
-        EPR = ctx.scene.a3obe_resolution_lods
-        EPR.named_properties.remove(self.index)
+class A3OBE_OT_RemoveNamedProperty_Geometry(Operator):
+    bl_idname = 'a3obe.remove_named_property_geometry'
+    bl_label = 'Remove Property'
+    bl_icon = 'X'
+    index: bpy.props.IntProperty()
+    def execute(self, context):
+        props = context.scene.a3obe_geometry_lod.named_properties
+        if 0 <= self.index < len(props):
+            props.remove(self.index)
         return {'FINISHED'}
 
 class A3OBE_OT_InitializeDefaultProperty(Operator):
     bl_idname = 'a3obe.initialize_default_property'
-    bl_label = 'Initialize Default Property'
-    bl_description = 'Adds lodnoshadow = 1 to Named Properties if not present'
-
-    def execute(self, ctx):
-        EPR = ctx.scene.a3obe_resolution_lods
-        if not any(prop.name == 'lodnoshadow' for prop in EPR.named_properties):
-            item = EPR.named_properties.add()
-            item.name = 'lodnoshadow'
-            item.value = '1'
-            self.report({'INFO'}, 'Added lodnoshadow = 1 to Named Properties')
-        else:
-            self.report({'WARNING'}, 'lodnoshadow is already present in Named Properties')
+    bl_label = 'Initialize Default'
+    bl_icon = 'FILE_REFRESH'
+    def execute(self, context):
+        resolution = context.scene.a3obe_resolution_lods
+        if not any(p.name == 'lodnoshadow' for p in resolution.named_properties):
+            prop = resolution.named_properties.add()
+            prop.name = 'lodnoshadow'
+            prop.value = '1'
+            self.report({'INFO'}, 'Added lodnoshadow=1 to Resolution LODs')
+        geometry = context.scene.a3obe_geometry_lod
+        if not any(p.name == 'lodnoshadow' for p in geometry.named_properties):
+            prop = geometry.named_properties.add()
+            prop.name = 'lodnoshadow'
+            prop.value = '1'
+            self.report({'INFO'}, 'Added lodnoshadow=1 to Geometry LODs')
         return {'FINISHED'}
