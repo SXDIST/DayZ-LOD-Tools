@@ -17,51 +17,96 @@ class A3OBE_OT_GenerateLODs(Operator):
             self.report({'WARNING'}, 'Select an object first!')
             return {'CANCELLED'}
 
-        if resolution_lods.active:
-            first_lod = 0 if resolution_lods.first_lod == 'LOD0' else 1
-            obj = context.active_object
-            obj.name = f'{resolution_lods.lod_prefix}{first_lod}'
-            obj.data.name = obj.name
-            obj.a3ob_properties_object.is_a3_lod = True
-            obj.a3ob_properties_object.lod = "0"
-            obj.a3ob_properties_object.resolution = first_lod
-            for prop in resolution_lods.named_properties:
-                self.add_named_property(obj, prop.name, prop.value)
+        if not hasattr(context.active_object, 'a3ob_properties_object'):
+            self.report({'WARNING'}, 'Active object does not have A3OB properties. Please select an object with A3OB properties.')
+            return {'CANCELLED'}
 
-            decimate_values = (resolution_lods.custom_decimate_values if resolution_lods.preset == 'CUSTOM'
-                             else resolution_lods.tris_decimate_values if resolution_lods.preset == 'TRIS'
-                             else resolution_lods.quads_decimate_values)
-            for i, ratio in enumerate(decimate_values):
-                dup_obj = self.duplicate(context, obj)
-                dup_obj.name = f'{resolution_lods.lod_prefix}{first_lod + i + 1}'
-                dup_obj.data.name = dup_obj.name
-                decimate = dup_obj.modifiers.new(name='Decimate', type='DECIMATE')
-                decimate.ratio = ratio
-                decimate.use_collapse_triangulate = True
-                weighted_normal = dup_obj.modifiers.new(name='WeightedNormal', type='WEIGHTED_NORMAL')
-                weighted_normal.use_face_influence = True
-                weighted_normal.keep_sharp = True
-                dup_obj.a3ob_properties_object.is_a3_lod = True
-                dup_obj.a3ob_properties_object.resolution = first_lod + i + 1
-                dup_obj.a3ob_properties_object.lod = str(first_lod + i + 1)
-                for prop in resolution_lods.named_properties:
-                    self.add_named_property(dup_obj, prop.name, prop.value)
+        if resolution_lods.active:
+            self.generate_resolution_lods(context)
 
         if geometry_lod.active:
-            obj = context.active_object
-            geometry_lod_obj = bpy.data.objects.new(geometry_lod.lod_name, bpy.data.meshes.new(geometry_lod.lod_name))
-            context.collection.objects.link(geometry_lod_obj)
-            if geometry_lod.geometry_type == 'BOX':
-                self.create_bounding_box(context, obj, geometry_lod_obj)
-            elif geometry_lod.geometry_type == 'NONE':
-                geometry_lod_obj.a3ob_properties_object.is_a3_lod = True
-                geometry_lod_obj.a3ob_properties_object.lod = '6'
-            geometry_lod_obj.a3ob_properties_object.is_a3_lod = True
-            geometry_lod_obj.a3ob_properties_object.lod = '6'
-            for prop in geometry_lod.named_properties:
-                self.add_named_property(geometry_lod_obj, prop.name, prop.value)
+            self.generate_geometry_lod(context)
 
         return {'FINISHED'}
+
+    def generate_resolution_lods(self, context):
+        resolution_lods = context.scene.a3obe_resolution_lods
+        obj = context.active_object
+        start_lod = 0 if resolution_lods.first_lod == 'LOD0' else 1
+
+        # Set up the original object as the first LOD
+        obj.name = f'{resolution_lods.lod_prefix}{start_lod}'
+        obj.data.name = obj.name
+        obj.a3ob_properties_object.is_a3_lod = True
+        obj.a3ob_properties_object.lod = '0'
+        obj.a3ob_properties_object.resolution = start_lod
+        for prop in resolution_lods.named_properties:
+            self.add_named_property(obj, prop.name, prop.value)
+
+        # Determine decimate values based on preset
+        decimate_values = (resolution_lods.custom_decimate_values if resolution_lods.preset == 'CUSTOM'
+                           else resolution_lods.tris_decimate_values if resolution_lods.preset == 'TRIS'
+                           else resolution_lods.quads_decimate_values)
+
+        # Create subsequent LODs
+        for i, ratio in enumerate(decimate_values):
+            lod_number = start_lod + i + 1
+            dup_obj = self.duplicate(context, obj)
+            dup_obj.name = f'{resolution_lods.lod_prefix}{lod_number}'
+            dup_obj.data.name = dup_obj.name
+            decimate = dup_obj.modifiers.new(name='Decimate', type='DECIMATE')
+            decimate.ratio = ratio
+            decimate.use_collapse_triangulate = True
+            weighted_normal = dup_obj.modifiers.new(name='WeightedNormal', type='WEIGHTED_NORMAL')
+            weighted_normal.use_face_influence = True
+            weighted_normal.keep_sharp = True
+            dup_obj.a3ob_properties_object.is_a3_lod = True
+            dup_obj.a3ob_properties_object.resolution = lod_number
+            for prop in resolution_lods.named_properties:
+                self.add_named_property(dup_obj, prop.name, prop.value)
+
+    def generate_geometry_lod(self, context):
+        geometry_lod = context.scene.a3obe_geometry_lod
+        obj = context.active_object
+
+        if geometry_lod.geometry_type == 'BOX':
+            geometry_lod_obj = bpy.data.objects.new(geometry_lod.lod_name, bpy.data.meshes.new(geometry_lod.lod_name))
+            context.collection.objects.link(geometry_lod_obj)
+            self.create_bounding_box(context, obj, geometry_lod_obj)
+            self.set_geometry_lod_properties(geometry_lod_obj, geometry_lod)
+
+        elif geometry_lod.geometry_type == 'MULTIPLE_BOXES':
+            temp_obj = obj.copy()
+            context.collection.objects.link(temp_obj)
+            temp_obj.select_set(True)
+            context.view_layer.objects.active = temp_obj
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.select_all(action='SELECT')
+            bpy.ops.mesh.separate(type='LOOSE')
+            bpy.ops.object.mode_set(mode='OBJECT')
+            part_objs = [o for o in context.selected_objects if len(o.data.vertices) > 0 and o != temp_obj]
+
+            for i, part in enumerate(part_objs):
+                box_obj = self.create_bounding_box(context, part)
+                box_obj.name = f'{geometry_lod.lod_name}_{i}'
+                self.set_geometry_lod_properties(box_obj, geometry_lod)
+
+            # Clean up temporary objects
+            bpy.data.objects.remove(temp_obj, do_unlink=True)
+            for part in part_objs:
+                bpy.data.objects.remove(part, do_unlink=True)
+
+        elif geometry_lod.geometry_type == 'NONE':
+            mesh = bpy.data.meshes.new(geometry_lod.lod_name)
+            geometry_lod_obj = bpy.data.objects.new(geometry_lod.lod_name, mesh)
+            context.collection.objects.link(geometry_lod_obj)
+            self.set_geometry_lod_properties(geometry_lod_obj, geometry_lod)
+
+    def set_geometry_lod_properties(self, obj, geometry_lod):
+        obj.a3ob_properties_object.is_a3_lod = True
+        obj.a3ob_properties_object.lod = '6'
+        for prop in geometry_lod.named_properties:
+            self.add_named_property(obj, prop.name, prop.value)
 
     def duplicate(self, context, obj):
         copy = obj.copy()
@@ -75,7 +120,7 @@ class A3OBE_OT_GenerateLODs(Operator):
             child_copy.parent = copy
         return copy
 
-    def create_bounding_box(self, context, source_obj, target_obj):
+    def create_bounding_box(self, context, source_obj, target_obj=None):
         bm = bmesh.new()
         bm.from_mesh(source_obj.data)
         coords = [source_obj.matrix_world @ v.co for v in bm.verts]
@@ -85,21 +130,15 @@ class A3OBE_OT_GenerateLODs(Operator):
         size = max_corner - min_corner
         center = (max_corner + min_corner) / 2
         bpy.ops.mesh.primitive_cube_add(size=1.0, location=center)
-        cube_obj = context.active_object
-        cube_obj.scale = size
-        target_obj.data = cube_obj.data.copy()
-        target_obj.location = cube_obj.location
-        target_obj.scale = size
-        bpy.data.objects.remove(cube_obj, do_unlink=True)
-        target_obj.data.update()
-
-    def create_convex_hull(self, context, source_obj, target_obj):
-        bm = bmesh.new()
-        bm.from_mesh(source_obj.data)
-        bmesh.ops.convex_hull(bm, input=bm.verts, use_existing_faces=False)
-        bm.to_mesh(target_obj.data)
-        bm.free()
-        target_obj.data.update()
+        box_obj = context.active_object
+        box_obj.scale = size
+        if target_obj:
+            target_obj.data = box_obj.data.copy()
+            target_obj.location = box_obj.location
+            target_obj.scale = size
+            bpy.data.objects.remove(box_obj, do_unlink=True)
+        else:
+            return box_obj
 
     def add_named_property(self, obj, name, value):
         props = obj.a3ob_properties_object.properties
