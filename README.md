@@ -45,4 +45,4 @@ To install the addon, follow these simple steps:
 -   I have added a note in the **"Requirements"** section stating that **Arma 3 Object Builder** is mandatory, so users will immediately understand this dependency.
 -   The installation instructions now clearly describe the process of downloading the `.zip` from the Releases and using the "Install" button in Blender, as you specified.
 
-If you have any additional requests or need anything changed, let me know! You can paste this text directly into your project's README on GitHub. Don't forget to replace the link `https://github.com/yourusername/DayZ-LOD-Tools` with the actual URL of your repository.
+If you have any additional requests or need anything changed, let me know! You can paste this text directly into your project's README on GitHub. Don't forget to replace the link `https://github.com/SXDIST/DayZ-LOD-Tools` with the actual URL of your repository.
