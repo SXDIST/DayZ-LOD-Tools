@@ -17,7 +17,11 @@ class A3OBE_PT_AutoLOD(Panel):
 
         resolution_lods = scene.a3obe_resolution_lods
         geometry_lod = scene.a3obe_geometry_lod
+        memory_lod = scene.a3obe_memory_lod
+        fire_geometry_lod = scene.a3obe_fire_geometry_lod
+        view_geometry_lod = scene.a3obe_view_geometry_lod
 
+        # Resolution LODs
         row = layout.row(align=True)
         row.prop(resolution_lods, 'active', icon='MOD_DECIM', text="Resolution LODs")
 
@@ -47,6 +51,7 @@ class A3OBE_PT_AutoLOD(Panel):
             row = box.row()
             row.operator("a3obe.add_named_property_resolution", text="Add Property", icon='PLUS')
 
+        # Geometry LOD
         row = layout.row(align=True)
         row.prop(geometry_lod, 'active', icon='MODIFIER', text="Geometry LOD")
 
@@ -66,6 +71,75 @@ class A3OBE_PT_AutoLOD(Panel):
                 row.operator("a3obe.remove_named_property_geometry", text="", icon='X').index = i
             row = box.row()
             row.operator("a3obe.add_named_property_geometry", text="Add Property", icon='PLUS')
+
+        # Memory LOD
+        row = layout.row(align=True)
+        row.prop(memory_lod, 'active', icon='EMPTY_AXIS', text="Memory LOD")
+
+        if memory_lod.active:
+            box = layout.box()
+            box.label(text="Memory LOD", icon='EMPTY_AXIS')
+            
+            # Standard Points section
+            standard_box = box.box()
+            standard_box.label(text="Standard Points", icon='MESH_CUBE')
+            row = standard_box.row(align=True)
+            row.prop(memory_lod, 'invview_point', icon='MESH_UVSPHERE')
+            row = standard_box.row(align=True)
+            row.prop(memory_lod, 'bounding_box_points', icon='MESH_CUBE')
+            row = standard_box.row(align=True)
+            row.prop(memory_lod, 'radius_point', icon='MESH_UVSPHERE')
+            row = standard_box.row(align=True)
+            row.prop(memory_lod, 'center_point', icon='MESH_UVSPHERE')
+            
+            box = layout.box()
+            box.label(text="Named Properties", icon='PROPERTIES')
+            for i, prop in enumerate(memory_lod.named_properties):
+                row = box.row(align=True)
+                row.prop(prop, "name", text="", icon='FILE_TEXT')
+                row.prop(prop, "value", text="", icon='TEXT')
+                row.operator("a3obe.remove_named_property_memory", text="", icon='X').index = i
+            row = box.row()
+            row.operator("a3obe.add_named_property_memory", text="Add Property", icon='PLUS')
+
+        # Fire Geometry LOD
+        row = layout.row(align=True)
+        row.prop(fire_geometry_lod, 'active', icon='MODIFIER', text="Fire Geometry LOD")
+
+        if fire_geometry_lod.active:
+            box = layout.box()
+            box.label(text="Fire Geometry LOD", icon='MODIFIER')
+            row = box.row(align=True)
+            row.label(text="Quality:")
+            row.prop(fire_geometry_lod, 'quality', text="", slider=True)
+            box = layout.box()
+            box.label(text="Named Properties", icon='PROPERTIES')
+            for i, prop in enumerate(fire_geometry_lod.named_properties):
+                row = box.row(align=True)
+                row.prop(prop, "name", text="", icon='FILE_TEXT')
+                row.prop(prop, "value", text="", icon='TEXT')
+                row.operator("a3obe.remove_named_property_fire_geometry", text="", icon='X').index = i
+            row = box.row()
+            row.operator("a3obe.add_named_property_fire_geometry", text="Add Property", icon='PLUS')
+
+        # View Geometry LOD
+        row = layout.row(align=True)
+        row.prop(view_geometry_lod, 'active', icon='VIEW3D', text="View Geometry LOD")
+
+        if view_geometry_lod.active:
+            box = layout.box()
+            box.label(text="View Geometry LOD", icon='VIEW3D')
+            row = box.row(align=True)
+            row.prop(view_geometry_lod, 'lod_name', icon='FONT_DATA')
+            box = layout.box()
+            box.label(text="Named Properties", icon='PROPERTIES')
+            for i, prop in enumerate(view_geometry_lod.named_properties):
+                row = box.row(align=True)
+                row.prop(prop, "name", text="", icon='FILE_TEXT')
+                row.prop(prop, "value", text="", icon='TEXT')
+                row.operator("a3obe.remove_named_property_view_geometry", text="", icon='X').index = i
+            row = box.row()
+            row.operator("a3obe.add_named_property_view_geometry", text="Add Property", icon='PLUS')
 
         row = layout.row(align=True)
         row.scale_y = 2.0
