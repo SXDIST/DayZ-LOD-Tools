@@ -31,11 +31,20 @@ classes = (
     properties.A3OBE_PG_NamedProperty,
     properties.A3OBE_PG_ResolutionLODs,
     properties.A3OBE_PG_GeometryLOD,
+    properties.A3OBE_PG_MemoryLOD,
+    properties.A3OBE_PG_FireGeometryLOD,
+    properties.A3OBE_PG_ViewGeometryLOD,
     operators.A3OBE_OT_GenerateLODs,
     operators.A3OBE_OT_AddNamedProperty_Resolution,
     operators.A3OBE_OT_AddNamedProperty_Geometry,
+    operators.A3OBE_OT_AddNamedProperty_Memory,
+    operators.A3OBE_OT_AddNamedProperty_FireGeometry,
+    operators.A3OBE_OT_AddNamedProperty_ViewGeometry,
     operators.A3OBE_OT_RemoveNamedProperty_Resolution,
     operators.A3OBE_OT_RemoveNamedProperty_Geometry,
+    operators.A3OBE_OT_RemoveNamedProperty_Memory,
+    operators.A3OBE_OT_RemoveNamedProperty_FireGeometry,
+    operators.A3OBE_OT_RemoveNamedProperty_ViewGeometry,
     panel.A3OBE_PT_AutoLOD,
 )
 
@@ -44,6 +53,9 @@ def register():
         bpy.utils.register_class(cls)
     bpy.types.Scene.a3obe_resolution_lods = bpy.props.PointerProperty(type=properties.A3OBE_PG_ResolutionLODs)
     bpy.types.Scene.a3obe_geometry_lod = bpy.props.PointerProperty(type=properties.A3OBE_PG_GeometryLOD)
+    bpy.types.Scene.a3obe_memory_lod = bpy.props.PointerProperty(type=properties.A3OBE_PG_MemoryLOD)
+    bpy.types.Scene.a3obe_fire_geometry_lod = bpy.props.PointerProperty(type=properties.A3OBE_PG_FireGeometryLOD)
+    bpy.types.Scene.a3obe_view_geometry_lod = bpy.props.PointerProperty(type=properties.A3OBE_PG_ViewGeometryLOD)
     if on_scene_load not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(on_scene_load)
 
@@ -52,5 +64,8 @@ def unregister():
         bpy.app.handlers.load_post.remove(on_scene_load)
     del bpy.types.Scene.a3obe_resolution_lods
     del bpy.types.Scene.a3obe_geometry_lod
+    del bpy.types.Scene.a3obe_memory_lod
+    del bpy.types.Scene.a3obe_fire_geometry_lod
+    del bpy.types.Scene.a3obe_view_geometry_lod
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
