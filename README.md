@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # DayZ LOD Tools (Arma 3 Object Builder Extensions)
 
 ## Description
@@ -49,6 +48,7 @@ A Blender addon designed to automate and streamline the creation of LODs (Level 
 
 ## Dependencies
 - **Arma 3 Object Builder**: This addon relies on the official/community Arma 3 Object Builder addon for property data definitions and component finding functionality. Ensure it is installed and enabled.
+
 =======
 Welcome to **DayZ LOD Tools** — an addon for Blender designed exclusively to work with **Arma 3 Object Builder**. 
 
@@ -96,6 +96,3 @@ To install the addon, follow these simple steps:
 
 -   I have added a note in the **"Requirements"** section stating that **Arma 3 Object Builder** is mandatory, so users will immediately understand this dependency.
 -   The installation instructions now clearly describe the process of downloading the `.zip` from the Releases and using the "Install" button in Blender, as you specified.
-
-If you have any additional requests or need anything changed, let me know!
->>>>>>> 473e4c19f88fad49c3773f280ddb66eec7f79f5a
