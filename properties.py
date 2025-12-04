@@ -2,13 +2,43 @@ import bpy
 from bpy.props import BoolProperty, StringProperty, EnumProperty, FloatVectorProperty, CollectionProperty, PointerProperty, IntProperty
 from bpy.types import PropertyGroup
 
+def get_property_names(self, context, edit_text):
+    try:
+        from bl_ext.blender_org.Arma3ObjectBuilder.utilities import data
+    except ImportError:
+        try:
+            # Fallback for legacy/manual install
+            import Arma3ObjectBuilder.utilities.data as data
+        except ImportError:
+            return []
+            
+    # Filter properties based on edit_text
+    props = sorted(list(data.known_namedprops.keys()))
+    return [p for p in props if edit_text.lower() in p.lower()]
+
+def get_property_values(self, context, edit_text):
+    try:
+        from bl_ext.blender_org.Arma3ObjectBuilder.utilities import data
+    except ImportError:
+        try:
+            # Fallback for legacy/manual install
+            import Arma3ObjectBuilder.utilities.data as data
+        except ImportError:
+            return []
+
+    # Get values for the current property name
+    if self.name in data.known_namedprops:
+        values = sorted(data.known_namedprops[self.name])
+        return [v for v in values if edit_text.lower() in v.lower()]
+    return []
+
 class A3OBE_PG_NamedProperty(PropertyGroup):
-    name: StringProperty(name="Name", description="Name of the custom property", default="")
-    value: StringProperty(name="Value", description="Value of the custom property", default="")
+    name: StringProperty(name="Name", description="Name of the custom property", default="", search=get_property_names)
+    value: StringProperty(name="Value", description="Value of the custom property", default="", search=get_property_values)
 
 class A3OBE_PG_ResolutionLODs(PropertyGroup):
     active: BoolProperty(name="Generate Resolution LODs", description="Enable generation of resolution LODs", default=True)
-    lod_prefix: StringProperty(name="Prefix", description="Prefix for resolution LOD object names", default="LOD ")
+    lod_prefix: StringProperty(name="Prefix", description="Prefix for resolution LOD object names", default="Resolution ")
     first_lod: EnumProperty(items=[('LOD0', "LOD 0", "Start with LOD 0", 'OUTLINER_OB_MESH', 0),
                                   ('LOD1', "LOD 1", "Start with LOD 1", 'OUTLINER_OB_MESH', 1)],
                            default='LOD1', description="Select the starting LOD level")
@@ -38,8 +68,8 @@ class A3OBE_PG_MemoryLOD(PropertyGroup):
     # Standard Points
     invview_point: BoolProperty(name="Inview Point", description="Add invview point to memory", default=True)
     bounding_box_points: BoolProperty(name="Bounding Box Points", description="Add boundingbox_min and boundingbox_max points", default=True)
-    radius_point: BoolProperty(name="Radius Point", description="Add ce_radius point to memory", default=False)
-    center_point: BoolProperty(name="Center Point", description="Add ce_center point to memory", default=False)
+    radius_point: BoolProperty(name="Radius Point", description="Add ce_radius point to memory", default=True)
+    center_point: BoolProperty(name="Center Point", description="Add ce_center point to memory", default=True)
     
     named_properties: CollectionProperty(type=A3OBE_PG_NamedProperty, description="List of custom properties for memory LOD")
 

@@ -3,11 +3,13 @@ bl_info = {
     "description": "Extensions for Arma 3 Object Builder",
     "author": "Mikk, SXDIST",
     "blender": (4, 5, 0),
+    "version": (3, 0, 0),
     "category": "3D View"
 }
 
 import bpy
-from . import panel, operators, properties
+import bpy
+from . import panel, operators, properties, utils, lod_generators
 
 def ensure_default_properties(scene):
 
