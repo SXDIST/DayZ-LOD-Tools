@@ -24,6 +24,9 @@ class A3OBE_OT_GenerateLODs(Operator):
             self.report({'WARNING'}, 'Active object does not have A3OB properties. Please select an object with A3OB properties.')
             return {'CANCELLED'}
 
+        if context.active_object.mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+
         # Store reference to original object to prevent loss during generation
         original_obj = context.active_object
 

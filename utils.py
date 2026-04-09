@@ -14,8 +14,11 @@ def create_bounding_box(context, source_obj, target_obj=None):
     if not coords:
         return None
         
-    min_corner = Vector((min(v.x for v in coords), min(v.y for v in coords), min(v.z for v in coords)))
-    max_corner = Vector((max(v.x for v in coords), max(v.y for v in coords), max(v.z for v in coords)))
+    x_coords = [v.x for v in coords]
+    y_coords = [v.y for v in coords]
+    z_coords = [v.z for v in coords]
+    min_corner = Vector((min(x_coords), min(y_coords), min(z_coords)))
+    max_corner = Vector((max(x_coords), max(y_coords), max(z_coords)))
     size = max_corner - min_corner
     center = (max_corner + min_corner) / 2
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=center)
@@ -72,15 +75,17 @@ def organize_collections(context):
     for collection in existing_collections:
         scene.collection.children.link(collection)
 
-def duplicate_object(context, obj):
+def duplicate_object(context, obj, target_collection=None):
+    if target_collection is None:
+        target_collection = context.collection
     copy = obj.copy()
     copy.data = obj.data.copy()
-    context.collection.objects.link(copy)
+    target_collection.objects.link(copy)
     for child in obj.children:
         child_copy = child.copy()
         if child_copy.data:
             child_copy.data = child_copy.data.copy()
-        context.collection.objects.link(child_copy)
+        target_collection.objects.link(child_copy)
         child_copy.parent = copy
     return copy
 

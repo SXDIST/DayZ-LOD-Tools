@@ -2,29 +2,31 @@ import bpy
 from bpy.props import BoolProperty, StringProperty, EnumProperty, FloatVectorProperty, CollectionProperty, PointerProperty, IntProperty
 from bpy.types import PropertyGroup
 
-def get_property_names(self, context, edit_text):
+def get_a3ob_data():
     try:
         from bl_ext.blender_org.Arma3ObjectBuilder.utilities import data
+        return data
     except ImportError:
         try:
             # Fallback for legacy/manual install
             import Arma3ObjectBuilder.utilities.data as data
+            return data
         except ImportError:
-            return []
+            return None
+
+def get_property_names(self, context, edit_text):
+    data = get_a3ob_data()
+    if not data:
+        return []
             
     # Filter properties based on edit_text
     props = sorted(list(data.known_namedprops.keys()))
     return [p for p in props if edit_text.lower() in p.lower()]
 
 def get_property_values(self, context, edit_text):
-    try:
-        from bl_ext.blender_org.Arma3ObjectBuilder.utilities import data
-    except ImportError:
-        try:
-            # Fallback for legacy/manual install
-            import Arma3ObjectBuilder.utilities.data as data
-        except ImportError:
-            return []
+    data = get_a3ob_data()
+    if not data:
+        return []
 
     # Get values for the current property name
     if self.name in data.known_namedprops:
