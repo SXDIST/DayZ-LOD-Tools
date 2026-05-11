@@ -8,26 +8,30 @@ bl_info = {
 }
 
 import bpy
-import bpy
-from . import panel, operators, properties, utils, lod_generators
+
+from . import properties, operators
+from .ui import panel
+from .constants import PROP_LOD_NO_SHADOW, PROP_AUTOCENTER
+
 
 def ensure_default_properties(scene):
-
     res_props = scene.a3obe_resolution_lods.named_properties
-    if not any(p.name == 'lodnoshadow' for p in res_props):
+    if not any(p.name == PROP_LOD_NO_SHADOW for p in res_props):
         prop = res_props.add()
-        prop.name = 'lodnoshadow'
+        prop.name = PROP_LOD_NO_SHADOW
         prop.value = '1'
 
     geo_props = scene.a3obe_geometry_lod.named_properties
-    if not any(p.name == 'autocenter' for p in geo_props):
+    if not any(p.name == PROP_AUTOCENTER for p in geo_props):
         prop = geo_props.add()
-        prop.name = 'autocenter'
+        prop.name = PROP_AUTOCENTER
         prop.value = '0'
+
 
 def on_scene_load(dummy):
     for scene in bpy.data.scenes:
         ensure_default_properties(scene)
+
 
 classes = (
     properties.A3OBE_PG_NamedProperty,
@@ -50,6 +54,7 @@ classes = (
     panel.A3OBE_PT_AutoLOD,
 )
 
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -60,6 +65,7 @@ def register():
     bpy.types.Scene.a3obe_view_geometry_lod = bpy.props.PointerProperty(type=properties.A3OBE_PG_ViewGeometryLOD)
     if on_scene_load not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(on_scene_load)
+
 
 def unregister():
     if on_scene_load in bpy.app.handlers.load_post:
