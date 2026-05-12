@@ -84,3 +84,16 @@ class A3OBE_PG_ViewGeometryLOD(PropertyGroup):
     active: BoolProperty(name="Generate View Geometry LOD", description="Enable generation of view geometry LOD", default=False)
     lod_name: StringProperty(name="Name", description="Name of the view geometry LOD object", default="View Geometry")
     named_properties: CollectionProperty(type=A3OBE_PG_NamedProperty, description="List of custom properties for view geometry LOD")
+
+class A3OBE_PG_ViewPilotLOD(PropertyGroup):
+    active: BoolProperty(name="Generate View Pilot LOD", description="Enable generation of view pilot LOD", default=False)
+    lod_name: StringProperty(name="Name", description="Name of the view pilot LOD object", default="View Pilot")
+    mesh_type: EnumProperty(
+        items=[
+            ('BY_MESH', "By Mesh", "Copy the source mesh", 'MESH_DATA', 0),
+            ('NONE',    "None",    "Create an empty mesh object", 'MESH_CUBE', 1),
+        ],
+        default='NONE',
+        description="Mesh content for the View Pilot LOD"
+    )
+    named_properties: CollectionProperty(type=A3OBE_PG_NamedProperty, description="List of custom properties for view pilot LOD")

@@ -21,6 +21,7 @@ class A3OBE_PT_AutoLOD(Panel):
         memory_lod = scene.a3obe_memory_lod
         fire_geometry_lod = scene.a3obe_fire_geometry_lod
         view_geometry_lod = scene.a3obe_view_geometry_lod
+        view_pilot_lod = scene.a3obe_view_pilot_lod
 
         # Resolution LODs
         row = layout.row(align=True)
@@ -42,6 +43,13 @@ class A3OBE_PT_AutoLOD(Panel):
                 row = box.row(align=True)
                 row.enabled = preset == 'CUSTOM'
                 row.prop(resolution_lods, decimate_values, index=i - first_lod, text=f'LOD{i}', icon='MESH_DATA')
+            box.separator()
+            row = box.row(align=True)
+            row.prop(view_pilot_lod, 'active', icon='VIEW_CAMERA', text="View Pilot LOD")
+            if view_pilot_lod.active:
+                sub = box.box()
+                row = sub.row(align=True)
+                row.prop(view_pilot_lod, 'mesh_type', expand=True)
             box = layout.box()
             box.label(text="Named Properties", icon='PROPERTIES')
             for i, prop in enumerate(resolution_lods.named_properties):
@@ -51,6 +59,16 @@ class A3OBE_PT_AutoLOD(Panel):
                 row.operator("a3obe.remove_named_property_resolution", text="", icon='X').index = i
             row = box.row()
             row.operator("a3obe.add_named_property_resolution", text="Add Property", icon='PLUS')
+            if view_pilot_lod.active:
+                box = layout.box()
+                box.label(text="View Pilot - Named Properties", icon='PROPERTIES')
+                for i, prop in enumerate(view_pilot_lod.named_properties):
+                    row = box.row(align=True)
+                    row.prop(prop, "name", text="", icon='FILE_TEXT')
+                    row.prop(prop, "value", text="", icon='TEXT')
+                    row.operator("a3obe.remove_named_property_view_pilot", text="", icon='X').index = i
+                row = box.row()
+                row.operator("a3obe.add_named_property_view_pilot", text="Add Property", icon='PLUS')
 
         # Geometry LOD
         row = layout.row(align=True)

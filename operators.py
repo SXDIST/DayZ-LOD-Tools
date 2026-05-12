@@ -48,6 +48,10 @@ class A3OBE_OT_AddNamedProperty_ViewGeometry(_AddNamedPropertyBase):
     bl_idname = 'a3obe.add_named_property_view_geometry'
     _prop_path = 'a3obe_view_geometry_lod'
 
+class A3OBE_OT_AddNamedProperty_ViewPilot(_AddNamedPropertyBase):
+    bl_idname = 'a3obe.add_named_property_view_pilot'
+    _prop_path = 'a3obe_view_pilot_lod'
+
 
 class A3OBE_OT_RemoveNamedProperty_Resolution(_RemoveNamedPropertyBase):
     bl_idname = 'a3obe.remove_named_property_resolution'
@@ -69,6 +73,10 @@ class A3OBE_OT_RemoveNamedProperty_ViewGeometry(_RemoveNamedPropertyBase):
     bl_idname = 'a3obe.remove_named_property_view_geometry'
     _prop_path = 'a3obe_view_geometry_lod'
 
+class A3OBE_OT_RemoveNamedProperty_ViewPilot(_RemoveNamedPropertyBase):
+    bl_idname = 'a3obe.remove_named_property_view_pilot'
+    _prop_path = 'a3obe_view_pilot_lod'
+
 
 class A3OBE_OT_GenerateLODs(Operator):
     bl_idname = 'a3obe.generate_lods'
@@ -88,8 +96,7 @@ class A3OBE_OT_GenerateLODs(Operator):
             return {'CANCELLED'}
 
         if context.active_object.mode != 'OBJECT':
-            with context.temp_override(active_object=context.active_object):
-                bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.mode_set(mode='OBJECT')
 
         original_obj = context.active_object
 
@@ -104,6 +111,9 @@ class A3OBE_OT_GenerateLODs(Operator):
 
         if scene.a3obe_view_geometry_lod.active:
             generators.generate_view_geometry_lod(context, original_obj)
+
+        if scene.a3obe_view_pilot_lod.active:
+            generators.generate_view_pilot_lod(context, original_obj)
 
         if scene.a3obe_resolution_lods.active:
             generators.generate_resolution_lods(context, original_obj)

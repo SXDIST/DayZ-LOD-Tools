@@ -31,16 +31,14 @@ def generate_fire_geometry_lod(context, obj):
     if decimate_ratio < 1.0:
         decimate = fire_obj.modifiers.new(name='Decimate_Quality', type='DECIMATE')
         decimate.ratio = decimate_ratio
-        with context.temp_override(active_object=fire_obj, selected_objects=[fire_obj]):
-            bpy.ops.object.modifier_apply(modifier='Decimate_Quality')
 
     triangulate = fire_obj.modifiers.new(name='Triangulate', type='TRIANGULATE')
     triangulate.min_vertices = 4
     triangulate.keep_custom_normals = False
     triangulate.quad_method = 'BEAUTY'
     triangulate.ngon_method = 'BEAUTY'
-    with context.temp_override(active_object=fire_obj, selected_objects=[fire_obj]):
-        bpy.ops.object.modifier_apply(modifier='Triangulate')
+
+    _apply_modifiers(context, fire_obj)
 
     fire_obj.a3ob_properties_object.is_a3_lod = True
     fire_obj.a3ob_properties_object.lod = LOD_FIRE_GEOMETRY
@@ -52,15 +50,29 @@ def generate_fire_geometry_lod(context, obj):
     return True
 
 
+def _apply_modifiers(context, obj):
+    depsgraph = context.evaluated_depsgraph_get()
+    eval_obj = obj.evaluated_get(depsgraph)
+    new_mesh = bpy.data.meshes.new_from_object(eval_obj, depsgraph=depsgraph)
+    old_mesh = obj.data
+    obj.data = new_mesh
+    obj.modifiers.clear()
+    bpy.data.meshes.remove(old_mesh)
+
+
 def _build_convex_hull(obj):
     bm = bmesh.new()
     bm.from_mesh(obj.data)
     result = bmesh.ops.convex_hull(bm, input=bm.verts)
-    # Collect all non-hull verts (interior + unused); deleting verts also removes dependent geometry
-    non_hull = result.get("geom_interior", []) + result.get("geom_unused", [])
-    verts_to_delete = [g for g in non_hull if isinstance(g, bmesh.types.BMVert)]
-    if verts_to_delete:
-        bmesh.ops.delete(bm, geom=verts_to_delete, context='VERTS')
+    del_geom = result.get("geom_interior", []) + result.get("geom_unused", [])
+    # Delete interior/unused faces first (handles faces whose verts are all on the hull)
+    faces = [g for g in del_geom if isinstance(g, bmesh.types.BMFace)]
+    if faces:
+        bmesh.ops.delete(bm, geom=faces, context='FACES')
+    # Delete remaining interior/unused verts (cascades to connected edges/faces)
+    verts = [g for g in del_geom if isinstance(g, bmesh.types.BMVert) and g.is_valid]
+    if verts:
+        bmesh.ops.delete(bm, geom=verts, context='VERTS')
     bm.to_mesh(obj.data)
     bm.free()
     obj.data.update()
