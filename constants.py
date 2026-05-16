@@ -4,7 +4,7 @@ LOD_MEMORY        = '9'
 LOD_VIEW_GEOMETRY = '14'
 LOD_FIRE_GEOMETRY = '15'
 # Verify this index against your installed A3OB version (check the lod enum in A3OB object properties)
-LOD_VIEW_PILOT    = '11'
+LOD_VIEW_PILOT    = '2'
 
 COLLECTION_VISUALS      = "Visuals"
 COLLECTION_GEOMETRIES   = "Geometries"

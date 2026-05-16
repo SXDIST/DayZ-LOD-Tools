@@ -22,7 +22,7 @@ def generate_geometry_lod(context, obj):
         geometries_collection.objects.link(geometry_lod_obj)
         utils.create_bounding_box(context, obj, geometry_lod_obj)
     else:
-        geometry_lod_obj = bpy.data.objects.new(geometry_lod.lod_name, None)
+        geometry_lod_obj = bpy.data.objects.new(geometry_lod.lod_name, bpy.data.meshes.new(geometry_lod.lod_name))
         geometries_collection.objects.link(geometry_lod_obj)
 
     _set_geometry_lod_properties(geometry_lod_obj, geometry_lod)
