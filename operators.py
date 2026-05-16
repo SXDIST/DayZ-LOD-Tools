@@ -1,7 +1,9 @@
+import os
+
 import bpy
 from bpy.types import Operator
 
-from . import generators
+from . import generators, updater
 from .core import utils
 
 
@@ -120,4 +122,49 @@ class A3OBE_OT_GenerateLODs(Operator):
 
         utils.organize_collections(context)
 
+        return {'FINISHED'}
+
+
+class A3OBE_OT_CheckForUpdates(Operator):
+    bl_idname = 'a3obe.check_for_updates'
+    bl_label = 'Check for Updates'
+    bl_description = 'Check GitHub for a newer version of this addon'
+
+    def execute(self, context):
+        updater.check()
+        if updater.status == 'AVAILABLE':
+            self.report({'INFO'}, f"Update available: v{updater.latest_version_str}")
+        elif updater.status == 'UP_TO_DATE':
+            self.report({'INFO'}, "Addon is up to date")
+        else:
+            self.report({'WARNING'}, f"Update check failed: {updater.error_message}")
+        for area in context.screen.areas:
+            area.tag_redraw()
+        return {'FINISHED'}
+
+
+class A3OBE_OT_InstallUpdate(Operator):
+    bl_idname = 'a3obe.install_update'
+    bl_label = 'Install Update'
+    bl_description = 'Download and install the latest version from GitHub'
+
+    def execute(self, context):
+        success, result = updater.download_and_install()
+        if not success:
+            self.report({'ERROR'}, f"Download failed: {result}")
+            return {'CANCELLED'}
+        try:
+            bpy.ops.preferences.addon_install(overwrite=True, filepath=result)
+        except Exception as e:
+            self.report({'ERROR'}, f"Install failed: {e}")
+            return {'CANCELLED'}
+        finally:
+            try:
+                os.unlink(result)
+            except OSError:
+                pass
+        updater.status = 'UP_TO_DATE'
+        self.report({'INFO'}, "Update installed — please restart Blender to apply it")
+        for area in context.screen.areas:
+            area.tag_redraw()
         return {'FINISHED'}

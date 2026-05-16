@@ -1,6 +1,8 @@
 import bpy
 from bpy.types import Panel
 
+from .. import updater
+
 
 class A3OBE_PT_AutoLOD(Panel):
     bl_space_type = 'VIEW_3D'
@@ -22,6 +24,22 @@ class A3OBE_PT_AutoLOD(Panel):
         fire_geometry_lod = scene.a3obe_fire_geometry_lod
         view_geometry_lod = scene.a3obe_view_geometry_lod
         view_pilot_lod = scene.a3obe_view_pilot_lod
+
+        # Update checker
+        row = layout.row(align=True)
+        if updater.status == 'AVAILABLE':
+            row.alert = True
+            row.operator('a3obe.check_for_updates',
+                         text=f"v{updater.latest_version_str} available", icon='IMPORT')
+            row.operator('a3obe.install_update', text="", icon='FILE_REFRESH')
+        elif updater.status == 'ERROR':
+            row.alert = True
+            row.operator('a3obe.check_for_updates',
+                         text="Update check failed", icon='ERROR')
+        else:
+            row.operator('a3obe.check_for_updates',
+                         text="Check for updates", icon='URL')
+        layout.separator(factor=0.5)
 
         # Resolution LODs
         row = layout.row(align=True)

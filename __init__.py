@@ -3,13 +3,13 @@ bl_info = {
     "description": "Extensions for Arma 3 Object Builder",
     "author": "SXDIST",
     "blender": (5, 0, 1),
-    "version": (5, 0, 0),
+    "version": (5, 0, 2),
     "category": "3D View"
 }
 
 import bpy
 
-from . import properties, operators
+from . import properties, operators, updater
 from .ui import panel
 from .constants import PROP_LOD_NO_SHADOW, PROP_AUTOCENTER
 
@@ -65,6 +65,8 @@ classes = (
     properties.A3OBE_PG_ViewGeometryLOD,
     properties.A3OBE_PG_ViewPilotLOD,
     operators.A3OBE_OT_GenerateLODs,
+    operators.A3OBE_OT_CheckForUpdates,
+    operators.A3OBE_OT_InstallUpdate,
     operators.A3OBE_OT_AddNamedProperty_Resolution,
     operators.A3OBE_OT_AddNamedProperty_Geometry,
     operators.A3OBE_OT_AddNamedProperty_Memory,
@@ -97,6 +99,7 @@ def register():
     if on_depsgraph_update not in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.append(on_depsgraph_update)
 
+    updater.set_local_version(bl_info["version"])
     bpy.app.timers.register(_deferred_init, first_interval=0.0)
 
 
